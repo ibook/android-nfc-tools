@@ -57,8 +57,9 @@ public class MainActivity extends AppCompatActivity {
         button.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 setContentView(R.layout.activity_write);
-//                Intent intent = new Intent(MainActivity.this,WriteActivity.class);
+                Intent intent = new Intent(MainActivity.this,WriteActivity.class);
 //                startActivityForResult(intent,0);
+                startActivity(intent);
             }
         });
 
@@ -95,7 +96,7 @@ public class MainActivity extends AppCompatActivity {
         super.onNewIntent(intent);
 
         TextView status = (TextView) findViewById(R.id.status);
-        TextView type = (TextView) findViewById(R.id.type);
+        TextView type = (TextView) findViewById(R.id.nfcTag);
         TextView size = (TextView) findViewById(R.id.size);
         TextView uidTextView = (TextView) findViewById(R.id.uid);
         TextView ndefMessage = (TextView) findViewById(R.id.ndefMessage);

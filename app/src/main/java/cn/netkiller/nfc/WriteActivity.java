@@ -13,11 +13,18 @@ import android.nfc.tech.Ndef;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
+import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
 import static android.nfc.NdefRecord.createMime;
@@ -31,6 +38,21 @@ public class WriteActivity  extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_write);
+
+
+        List<String> list = Arrays.asList("Text 文本", "URL 网址", "电话号码", "短信","开启应用", "地址", "日历", "图片", "邮箱", "GPS 坐标");
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1,list);
+        final ListView listView = (ListView) findViewById(R.id.schemaList);
+        listView.setAdapter(adapter);
+
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                String text = listView.getItemAtPosition(position)+"";
+                Log.e("WRITE","position="+position+", text="+text);
+            }
+        });
 
         TextView uuidTextView = (TextView) findViewById(R.id.uuid);
 
@@ -51,17 +73,17 @@ public class WriteActivity  extends Activity {
 
         uuidTextView.setText("Start...");
 
-        Tag tag = getIntent().getParcelableExtra(NfcAdapter.EXTRA_TAG);
+//        Tag tag = getIntent().getParcelableExtra(NfcAdapter.EXTRA_TAG);
 
-        try {
-            UUID uuid = UUID.randomUUID();
-            write(uuid.toString(),tag);
-            uuidTextView.setText(uuid.toString());
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (FormatException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            UUID uuid = UUID.randomUUID();
+//            write(uuid.toString(),tag);
+//            uuidTextView.setText(uuid.toString());
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        } catch (FormatException e) {
+//            e.printStackTrace();
+//        }
     }
 
 //    @Override
@@ -99,36 +121,36 @@ public class WriteActivity  extends Activity {
 //            e.printStackTrace();
 //        }
 //    }
-    private void write(String text, Tag tag) throws IOException, FormatException {
-        NdefRecord[] records = { createRecord(text) };
-        NdefMessage message = new NdefMessage(records);
-        // Get an instance of Ndef for the tag.
-        Ndef ndef = Ndef.get(tag);
-        // Enable I/O
-        ndef.connect();
-        // Write the message
-        ndef.writeNdefMessage(message);
-        // Close the connection
-        ndef.close();
-    }
-    private NdefRecord createRecord(String text) throws UnsupportedEncodingException {
-        String lang       = "en";
-        byte[] textBytes  = text.getBytes();
-        byte[] langBytes  = lang.getBytes("US-ASCII");
-        int    langLength = langBytes.length;
-        int    textLength = textBytes.length;
-        byte[] payload    = new byte[1 + langLength + textLength];
-
-        // set status byte (see NDEF spec for actual bits)
-        payload[0] = (byte) langLength;
-
-        // copy langbytes and textbytes into payload
-        System.arraycopy(langBytes, 0, payload, 1,              langLength);
-        System.arraycopy(textBytes, 0, payload, 1 + langLength, textLength);
-
-        NdefRecord recordNFC = new NdefRecord(NdefRecord.TNF_WELL_KNOWN,  NdefRecord.RTD_TEXT,  new byte[0], payload);
-
-        return recordNFC;
-    }
+//    private void write(String text, Tag tag) throws IOException, FormatException {
+//        NdefRecord[] records = { createRecord(text) };
+//        NdefMessage message = new NdefMessage(records);
+//        // Get an instance of Ndef for the tag.
+//        Ndef ndef = Ndef.get(tag);
+//        // Enable I/O
+//        ndef.connect();
+//        // Write the message
+//        ndef.writeNdefMessage(message);
+//        // Close the connection
+//        ndef.close();
+//    }
+//    private NdefRecord createRecord(String text) throws UnsupportedEncodingException {
+//        String lang       = "en";
+//        byte[] textBytes  = text.getBytes();
+//        byte[] langBytes  = lang.getBytes("US-ASCII");
+//        int    langLength = langBytes.length;
+//        int    textLength = textBytes.length;
+//        byte[] payload    = new byte[1 + langLength + textLength];
+//
+//        // set status byte (see NDEF spec for actual bits)
+//        payload[0] = (byte) langLength;
+//
+//        // copy langbytes and textbytes into payload
+//        System.arraycopy(langBytes, 0, payload, 1,              langLength);
+//        System.arraycopy(textBytes, 0, payload, 1 + langLength, textLength);
+//
+//        NdefRecord recordNFC = new NdefRecord(NdefRecord.TNF_WELL_KNOWN,  NdefRecord.RTD_TEXT,  new byte[0], payload);
+//
+//        return recordNFC;
+//    }
 
 }
