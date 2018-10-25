@@ -3,6 +3,8 @@ package cn.netkiller.nfc;
 
 import android.nfc.FormatException;
 import android.nfc.NdefRecord;
+import android.support.annotation.NonNull;
+import android.support.design.widget.BottomNavigationView;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
@@ -14,6 +16,7 @@ import android.nfc.NfcAdapter;
 import android.nfc.Tag;
 import android.nfc.tech.Ndef;
 import android.os.Parcelable;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
@@ -35,6 +38,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.navigation);
+        navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
+
         final TextView status = (TextView) findViewById(R.id.status);
 
         nfcAdapter = NfcAdapter.getDefaultAdapter(this);
@@ -54,14 +60,14 @@ public class MainActivity extends AppCompatActivity {
 
         Button button = (Button) findViewById(R.id.writeButton);
 
-        button.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                setContentView(R.layout.activity_write);
-                Intent intent = new Intent(MainActivity.this,WriteActivity.class);
-//                startActivityForResult(intent,0);
-                startActivity(intent);
-            }
-        });
+//        button.setOnClickListener(new View.OnClickListener() {
+//            public void onClick(View v) {
+//                setContentView(R.layout.activity_write);
+//                Intent intent = new Intent(MainActivity.this, WriteActivity.class);
+////                startActivityForResult(intent,0);
+//                startActivity(intent);
+//            }
+//        });
 
         final Switch switchWrite = (Switch) findViewById(R.id.switchWrite);
 
@@ -69,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 
-                if(isChecked) {
+                if (isChecked) {
                     status.setText(switchWrite.getTextOn().toString());
                 } else {
                     status.setText(switchWrite.getTextOff().toString());
@@ -77,11 +83,47 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
+
+    private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
+            = new BottomNavigationView.OnNavigationItemSelectedListener() {
+
+        @Override
+        public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+            switch (item.getItemId()) {
+                case R.id.navigation_home:
+//                    mTextMessage.setText(R.string.title_home);
+
+                    return true;
+                case R.id.navigation_dashboard:
+//                    mTextMessage.setText(R.string.title_dashboard);
+
+//                    Intent intent = new Intent(MainActivity.this, Oauth2jwtActivity.class);
+//                    startActivity(intent);
+
+                    Intent intent = new Intent(MainActivity.this, WriteActivity.class);
+                    startActivity(intent);
+
+                    return true;
+                case R.id.navigation_notifications:
+//                    mTextMessage.setText(R.string.title_notifications);
+
+//                    intent = new Intent(MainActivity.this, HttpActivity.class);
+//                    startActivity(intent);
+
+                    return true;
+            }
+            return false;
+        }
+    };
+
+
     @Override
     protected void onResume() {
         super.onResume();
-        nfcAdapter.enableForegroundDispatch(this,pendingIntent, null, null);
+        nfcAdapter.enableForegroundDispatch(this, pendingIntent, null, null);
     }
+
     @Override
     protected void onPause() {
         super.onPause();
@@ -109,11 +151,11 @@ public class MainActivity extends AppCompatActivity {
 
         Tag tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
 
-        if(switchWrite.isChecked()){
+        if (switchWrite.isChecked()) {
 
             UUID uuid = UUID.randomUUID();
             try {
-                write(uuid.toString(),tag);
+                write(uuid.toString(), tag);
                 ndefWrite.setText(uuid.toString());
             } catch (IOException e) {
                 e.printStackTrace();
@@ -135,7 +177,7 @@ public class MainActivity extends AppCompatActivity {
             String log = ndef.getType() + "\n最大数据容量：" + ndef.getMaxSize() + " bytes\n\n";
             System.out.println(log);
             type.setText(ndef.getType());
-            size.setText(ndef.getMaxSize() +" bytes");
+            size.setText(ndef.getMaxSize() + " bytes");
 
             Parcelable[] rawMessages = intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES);
             if (rawMessages != null) {
@@ -154,7 +196,7 @@ public class MainActivity extends AppCompatActivity {
                     charset.setText(encoding);
 
                     int languageCodeLength = payload[0] & 0x3f;
-                    String languageCode = new String(payload, 1, languageCodeLength,"US-ASCII");
+                    String languageCode = new String(payload, 1, languageCodeLength, "US-ASCII");
 
 
 //                    String lang = new String(payload, 1, payload[0] & 0063, "US-ASCII");
@@ -170,14 +212,14 @@ public class MainActivity extends AppCompatActivity {
 
             }
 
-        }else {
+        } else {
             status.setText("NOT NDEF Messages tag");
         }
     }
 
 
     private void write(String text, Tag tag) throws IOException, FormatException {
-        NdefRecord[] records = { createRecord(text) };
+        NdefRecord[] records = {createRecord(text)};
         NdefMessage message = new NdefMessage(records);
         // Get an instance of Ndef for the tag.
         Ndef ndef = Ndef.get(tag);
@@ -188,22 +230,23 @@ public class MainActivity extends AppCompatActivity {
         // Close the connection
         ndef.close();
     }
+
     private NdefRecord createRecord(String text) throws UnsupportedEncodingException {
-        String lang       = "en";
-        byte[] textBytes  = text.getBytes();
-        byte[] langBytes  = lang.getBytes("US-ASCII");
-        int    langLength = langBytes.length;
-        int    textLength = textBytes.length;
-        byte[] payload    = new byte[1 + langLength + textLength];
+        String lang = "en";
+        byte[] textBytes = text.getBytes();
+        byte[] langBytes = lang.getBytes("US-ASCII");
+        int langLength = langBytes.length;
+        int textLength = textBytes.length;
+        byte[] payload = new byte[1 + langLength + textLength];
 
         // set status byte (see NDEF spec for actual bits)
         payload[0] = (byte) langLength;
 
         // copy langbytes and textbytes into payload
-        System.arraycopy(langBytes, 0, payload, 1,              langLength);
+        System.arraycopy(langBytes, 0, payload, 1, langLength);
         System.arraycopy(textBytes, 0, payload, 1 + langLength, textLength);
 
-        NdefRecord recordNFC = new NdefRecord(NdefRecord.TNF_WELL_KNOWN,  NdefRecord.RTD_TEXT,  new byte[0], payload);
+        NdefRecord recordNFC = new NdefRecord(NdefRecord.TNF_WELL_KNOWN, NdefRecord.RTD_TEXT, new byte[0], payload);
 
         return recordNFC;
     }
